@@ -1,0 +1,210 @@
+from kivy.app import App
+from kivy.uix.screenmanager import ScreenManager, Screen
+from kivy.uix.floatlayout import FloatLayout
+from kivy.uix.gridlayout import GridLayout
+from kivy.uix.button import Button
+from kivy.uix.label import Label
+from kivy.graphics import Color, Rectangle, Ellipse, RoundedRectangle
+from kivy.core.window import Window
+from kivy.core.audio import SoundLoader
+from kivy.metrics import dp
+from kivy.storage.jsonstore import JsonStore
+import random, webbrowser, os, math, wave, struct
+
+Window.clearcolor=(0.01,0.01,0.02,1)
+BLACK=(0.015,0.015,0.02,1); WHITE=(1,1,1,1); GRAY=(0.25,0.27,0.32,1)
+LEVELS=['EASY','MEDIUM','HARD','VERY HARD']
+
+DATA=[[('What has hands but cannot clap?', 'CLOCK'), ('What has a face and two hands but no arms or legs?', 'CLOCK'), ('What has keys but cannot open locks?', 'PIANO'), ('What has a neck but no head?', 'BOTTLE'), ('What has one eye but cannot see?', 'NEEDLE'), ('What has teeth but cannot bite?', 'COMB'), ('What gets wetter as it dries?', 'TOWEL'), ('What has legs but cannot walk?', 'TABLE'), ('What has a bed but never sleeps?', 'RIVER'), ('What has a mouth but never eats?', 'RIVER'), ('What can you catch but not throw?', 'COLD'), ('What goes up but never comes down?', 'AGE'), ('What is full of holes but holds water?', 'SPONGE'), ('What has a thumb and four fingers but is not alive?', 'GLOVE'), ('What can run but never walks?', 'WATER'), ('What has ears but cannot hear?', 'CORN'), ('What has a head and a tail but no body?', 'COIN'), ('What has words but never speaks?', 'BOOK'), ('What has a ring but no finger?', 'PHONE'), ('What is orange and sounds like a parrot?', 'CARROT'), ('What has four wheels and flies?', 'GARBAGE'), ('What goes up when rain comes down?', 'UMBRELLA'), ('What can travel around the world while staying in one corner?', 'STAMP'), ('What kind of room has no doors or windows?', 'MUSHROOM'), ('What has a bark but no bite?', 'TREE'), ('What has a spine but no bones?', 'BOOK'), ('What has a tongue but cannot talk?', 'SHOE'), ('What has a lock but no door?', 'HAIR'), ('What has a crown but is not a king?', 'PINEAPPLE'), ('What has a shell but no home?', 'EGG'), ('What has a handle but no door?', 'CUP'), ('What is black when clean and white when dirty?', 'BLACKBOARD'), ('What comes down but never goes up?', 'RAIN'), ('What is easy to lift but hard to throw?', 'FEATHER'), ('What has a head but no brain?', 'NAIL'), ('What has a foot but no legs?', 'RULER'), ('What is always in front of you but cannot be seen?', 'FUTURE'), ('What begins with T, ends with T, and has T inside?', 'TEAPOT'), ('What has cities but no houses?', 'MAP'), ('What has countries but no people?', 'MAP'), ('What has a face but no eyes?', 'CLOCK'), ('What can fill a room but takes no space?', 'LIGHT'), ('What is made of water but dies in water?', 'ICE'), ('What can you hear but not touch or see?', 'SOUND'), ('What has many eyes but cannot see?', 'POTATO'), ('What has no life but can die?', 'BATTERY'), ('What can be seen once in a minute and twice in a moment?', 'M'), ('What has a head and a tail but no body and is not alive?', 'COIN'), ('What has many teeth but cannot chew?', 'SAW'), ('What has a bed but never sleeps and can roar?', 'RIVER')], [('I am tall when I am young and short when I am old. What am I?', 'CANDLE'), ('What disappears as soon as you say its name?', 'SILENCE'), ('The more you take, the more you leave behind. What are they?', 'STEPS'), ('What belongs to you but other people use it more than you do?', 'NAME'), ('What has 13 hearts but no other organs?', 'CARDS'), ('What can be broken without being touched?', 'PROMISE'), ('What can you make that no one can see?', 'NOISE'), ('What is always coming but never arrives?', 'TOMORROW'), ('What gets bigger the more you take away?', 'HOLE'), ('What word is pronounced wrong even when you say it correctly?', 'WRONG'), ('What can you hold without ever touching it?', 'CONVERSATION'), ('What can run around a yard without moving?', 'FENCE'), ('What is so fragile that saying its name breaks it?', 'SILENCE'), ('What goes through cities and fields but never moves?', 'ROAD'), ('What can be cracked, made, told, and played?', 'JOKE'), ('What has no beginning, end, or middle?', 'CIRCLE'), ('What can you serve but never eat?', 'TENNIS'), ('What has an eye but cannot see and is used to sew?', 'NEEDLE'), ('What has a lot of words but never speaks?', 'DICTIONARY'), ('What is bought to eat but never eaten?', 'PLATE'), ('What has a key but no lock and space but no room?', 'KEYBOARD'), ('What can be opened but has no lid?', 'MIND'), ('What can you keep after giving it to someone?', 'PROMISE'), ('What has many needles but cannot sew?', 'PINE'), ('What can you find in the middle of nowhere?', 'H'), ('What is at the end of a rainbow?', 'W'), ('What is lighter than a feather but impossible to hold for long?', 'BREATH'), ('What can go up a chimney down but cannot go down a chimney up?', 'UMBRELLA'), ('What can you never put in a saucepan?', 'LID'), ('What has no voice but can tell you a story?', 'PICTURE'), ('What can be measured but has no length, width, or height?', 'TIME'), ('What has a lot of teeth but cannot chew?', 'SAW'), ('What has a head and four legs but cannot walk?', 'BED'), ('What is always late and never early?', 'CLOCK'), ('What can you lose without knowing where you lost it?', 'TEMPER'), ('What can you give away and still keep?', 'SMILE'), ('What can be heard and caught but never held?', 'LAUGHTER'), ('What has many branches but no leaves?', 'BANK'), ('What has a face and hands but no body?', 'CLOCK'), ('What has an eye at the center but cannot see?', 'STORM'), ('What has a head like a cat, feet like a cat, but is not a cat?', 'KITTEN'), ('What has an eye but cannot see and is not a needle?', 'POTATO'), ('What has a bottom but no top?', 'LEG'), ('What has a tongue but cannot taste?', 'SHOE'), ('What can be opened with a key but has no lock?', 'MUSIC'), ('What can be caught but never thrown and can make you sick?', 'COLD'), ('What can you give someone without having less of it?', 'ADVICE'), ('What can be seen in water but never gets wet?', 'REFLECTION'), ('What is yours, but you rarely use it yourself?', 'NAME'), ('What has a face, but no eyes, hands, or arms?', 'CLOCK')], [('I speak without a mouth and hear without ears. I have no body, but I come alive with wind.', 'ECHO'), ('What five-letter word becomes shorter when you add two letters to it?', 'SHORT'), ('What word contains 26 letters but only has three syllables?', 'ALPHABET'), ('What can run but never walks, has a mouth but never talks, has a head but never weeps?', 'RIVER'), ('What has keys, space, and enter but no doors?', 'KEYBOARD'), ('What occurs once in every minute, twice in every moment, but never in a thousand years?', 'M'), ('A man shaves several times a day but still has a beard. Who is he?', 'BARBER'), ('What can be seen in water but never gets wet?', 'REFLECTION'), ('What has an eye but cannot see and can be found in a hurricane?', 'EYE'), ('What has no life but can grow, has no lungs but needs air?', 'FIRE'), ('What has roots nobody sees, is taller than trees, and never grows?', 'MOUNTAIN'), ('What can you break even if you never pick it up or touch it?', 'PROMISE'), ('What can be swallowed but can also swallow you?', 'PRIDE'), ('What has a heart that never beats?', 'ARTICHOKE'), ('What is always in front of you but always out of reach?', 'FUTURE'), ('What has a beginning but no end, and an end but no beginning?', 'CIRCLE'), ('What can be full of holes and still hold a lot of water?', 'SPONGE'), ('What can pass through glass without breaking it?', 'LIGHT'), ('What can be written, spoken, broken, and kept?', 'PROMISE'), ('What gets sharper the more you use it?', 'BRAIN'), ('What can be heard but never seen, and comes after a sound?', 'ECHO'), ('What has a face, two hands, and no arms, but tells you when to run?', 'CLOCK'), ('What can you make that can never be seen?', 'DECISION'), ('What has many pages but is not a book?', 'CALENDAR'), ('What can be stolen, mistaken, or altered, but never touched?', 'IDENTITY'), ('What can you hold in your left hand but never in your right?', 'RIGHT'), ('What starts with E, ends with E, but contains only one letter?', 'ENVELOPE'), ('What is the longest word in the dictionary?', 'SMILES'), ('What is black, white, and read all over?', 'NEWSPAPER'), ('What has a neck without a head and wears a cap?', 'BOTTLE'), ('What has a tongue but cannot taste and moves without legs?', 'SHOE'), ('What can you keep but cannot share, and once shared you no longer keep it?', 'SECRET'), ('What has a thousand needles but cannot sew?', 'PINE'), ('What can be cracked, made, told, and played, but not eaten?', 'JOKE'), ('What has no doors but has keys, no rooms but has space?', 'KEYBOARD'), ('What has an invisible body and a visible tail?', 'COMET'), ('What can fall off a building and live, but fall into water and die?', 'PAPER'), ('What can be seen once in a year, twice in a week, and never in a day?', 'E'), ('What has a ring but no finger, and can be answered?', 'PHONE'), ('What can go up and down without moving?', 'STAIRS'), ('What has four eyes but cannot see?', 'MISSISSIPPI'), ('What has a bed but never sleeps and can roar?', 'RIVER'), ('What has a head, a tail, is brown, and has no legs?', 'PENNY'), ('What can be caught but never thrown and can make you sick?', 'COLD'), ('What can be measured in moments but never held?', 'TIME'), ('What is invisible, weighs nothing, but can knock down trees?', 'WIND'), ('What can travel faster than light in a story?', 'THOUGHT'), ('What can be opened with a key but has no lock?', 'MUSIC'), ('What has a lot of words but never speaks?', 'DICTIONARY'), ('What can be lost without being dropped?', 'FOCUS')], [('I have no weight, but you can see me. Put me in a bucket and the bucket becomes lighter. What am I?', 'HOLE'), ('The more of this there is, the less you see. What is it?', 'DARKNESS'), ('I am taken from a mine and shut inside a wooden case, from which I am never released. What am I?', 'GRAPHITE'), ('I have lakes with no water, mountains with no stone, and cities with no buildings. What am I?', 'MAP'), ('What disappears the moment you share it?', 'SECRET'), ('What can be touched but cannot be held, seen but cannot be kept?', 'SHADOW'), ('I can be long or short; I can be grown or bought; I can be painted or left bare. What am I?', 'NAILS'), ('What has six faces, but no makeup, twenty-one eyes, but cannot see?', 'DICE'), ('A word I know, six letters it contains. Remove one letter and twelve remain. What is it?', 'DOZENS'), ('What English word retains the same pronunciation even after four of its five letters are removed?', 'QUEUE'), ('What begins and ends with an E but contains only one letter?', 'ENVELOPE'), ('What is the only place where today comes before yesterday?', 'DICTIONARY'), ('What has a million stories but cannot speak?', 'LIBRARY'), ('What can be at the beginning of eternity, the end of time and space, and the beginning of every end?', 'E'), ('What has an eye at the center but cannot see, and can be found in a hurricane?', 'EYE'), ('What gets broken without being held, and repaired without being touched?', 'HEART'), ('What can be measured in seconds but lasts forever?', 'MEMORY'), ('What has no beginning, no end, and no middle?', 'RING'), ('What can be seen in the middle of March and April but not at the beginning or end?', 'R'), ('What word becomes its opposite when you add one letter?', 'UNDER'), ('What is something you can never put into a box, no matter how small the box is?', 'LIGHT'), ('What can cross a river without getting wet and can fly without wings?', 'BRIDGE'), ('What has a shadow but no body and follows you only in light?', 'REFLECTION'), ('What can be lost in a moment but takes years to rebuild?', 'TRUST'), ('What has a beginning, middle, and end, but no letters?', 'STORY'), ('What can be read from left to right or right to left and still make sense?', 'PALINDROME'), ('What is always coming but never arrives, yet it can become today?', 'TOMORROW'), ('What has a head but no brain, a bed but never sleeps, and runs without legs?', 'RIVER'), ('What can be cracked but never touched, and can be told but never seen?', 'JOKE'), ('What can fill a room without taking space, and can disappear when you close your eyes?', 'LIGHT'), ('What has no mouth but can whisper, no ears but can listen?', 'PHONE'), ('What can be everywhere at once but has no shape?', 'AIR'), ('What can be older than time but is born every morning?', 'SUNRISE'), ('What can be broken by a promise but fixed by an apology?', 'TRUST'), ('What can be heard in silence but not in noise?', 'THOUGHT'), ('What has a key but no lock, a return but no journey, and a space but no room?', 'KEYBOARD'), ('What has an end you can see but a beginning you cannot?', 'RAINBOW'), ('What can be written without ink and read without paper?', 'THOUGHT'), ('What becomes more valuable when it is given away?', 'KNOWLEDGE'), ('What can be shared without being divided?', 'IDEA'), ('What can be opened only after it is closed?', 'EYES'), ('What has no weight, no color, and no shape, but can change your whole day?', 'MOOD'), ('What can be lost without being dropped and found without being searched for?', 'FOCUS'), ('What has no voice but can answer every question if you know where to look?', 'BOOK'), ('What can be broken by silence and healed by words?', 'RELATIONSHIP'), ('What can move mountains but cannot lift a stone?', 'TIME'), ('What can be seen only when it is absent?', 'DARKNESS'), ('What has a beginning that is an ending and an ending that is a beginning?', 'CIRCLE'), ('What can you give someone without having less of it yourself?', 'ADVICE'), ('What can travel around the world without moving from its corner?', 'STAMP')]]
+
+def make_music_file():
+    """Creates a small original looping melody automatically; no music download needed."""
+    path=os.path.join(os.path.dirname(__file__) or '.', 'bla_theme.wav')
+    if os.path.exists(path): return path
+    sr=22050; bpm=92; beat=60.0/bpm
+    # Original simple night-sky melody.
+    notes=[220.0,261.63,329.63,293.66,246.94,196.0,220.0,329.63,
+           392.0,329.63,293.66,261.63,220.0,246.94,293.66,220.0]
+    total=int(sr*beat*2*len(notes)); data=[]
+    for i in range(total):
+        t=i/sr; idx=int(t/(beat*2)); local=t%(beat*2); f=notes[idx%len(notes)]
+        env=min(1,local*8)*max(0,(beat*2-local)*2.2)
+        tone=0.16*math.sin(2*math.pi*f*t)+0.055*math.sin(2*math.pi*f*2*t)
+        # soft bass pulse
+        bass=0.035*math.sin(2*math.pi*(f/2)*t)
+        val=max(-1,min(1,(tone+bass)*env))
+        data.append(struct.pack('<h',int(val*32767)))
+    with wave.open(path,'wb') as w:
+        w.setnchannels(1); w.setsampwidth(2); w.setframerate(sr); w.writeframes(b''.join(data))
+    return path
+
+class NightBG(FloatLayout):
+    def __init__(self, **kw):
+        super().__init__(**kw)
+        with self.canvas.before:
+            Color(0.008,0.015,0.045,1); self.base=Rectangle(pos=self.pos,size=self.size)
+            Color(0.012,0.028,0.085,1); self.sky=Rectangle(pos=self.pos,size=self.size)
+            Color(0.035,0.065,0.16,1); self.haze=Rectangle(pos=(self.x,self.y+self.height*.28),size=(self.width,self.height*.22))
+        self.stars=[]
+        with self.canvas:
+            random.seed(42)
+            for _ in range(55):
+                x=random.random(); y=.10+random.random()*.84; r=random.choice([.8,1,1,1.3,1.7])
+                Color(0.75+random.random()*.25,0.78+random.random()*.22,0.9+random.random()*.1,1)
+                self.stars.append(Ellipse(pos=(0,0),size=(dp(r),dp(r))))
+        self.bind(pos=self._sync,size=self._sync)
+        self._sync()
+    def _sync(self,*a):
+        self.base.pos=self.pos; self.base.size=self.size
+        self.sky.pos=self.pos; self.sky.size=self.size
+        self.haze.pos=(self.x,self.y+self.height*.28); self.haze.size=(self.width,self.height*.22)
+        random.seed(42)
+        for e in self.stars:
+            e.pos=(self.x+random.random()*self.width,
+                   self.y+(0.10+random.random()*.84)*self.height)
+
+class Base(Screen):
+    def __init__(self,**kw):
+        super().__init__(**kw); self.box=NightBG(); self.add_widget(self.box)
+    def txt(self,t,s=22,**kw):
+        return Label(text=t,font_size=dp(s),bold=True,color=WHITE,**kw)
+
+def btn(text,w=220,h=56,fs=18,bg=(0.015,0.015,0.025,0.92)):
+    b=Button(text=text,size_hint=(None,None),size=(dp(w),dp(h)),font_size=dp(fs),bold=True,
+             color=WHITE,background_normal='',background_color=bg)
+    return b
+
+class Home(Base):
+    def __init__(self,**kw):
+        super().__init__(**kw)
+        title=self.txt('SKY',42,size_hint=(1,None),height=dp(70),pos_hint={'center_x':.5,'top':.91})
+        self.box.add_widget(title)
+        sub=self.txt('RIDDLE • WORD • PUZZLE',12,size_hint=(1,None),height=dp(30),pos_hint={'center_x':.5,'top':.84})
+        sub.opacity=.75; self.box.add_widget(sub)
+        b=btn('START',250,78,25); b.pos_hint={'center_x':.5,'center_y':.49}; b.bind(on_press=lambda x:setattr(App.get_running_app().sm,'current','levels')); self.box.add_widget(b)
+        # Fixed: the old symbol-only buttons could look empty on some Android fonts.
+        b=btn('SETTINGS',145,48,14); b.pos_hint={'right':.95,'top':.965}; b.bind(on_press=lambda x:setattr(App.get_running_app().sm,'current','settings')); self.box.add_widget(b)
+        b=btn('RATE ON GOOGLE PLAY',190,44,11); b.pos_hint={'right':.95,'y':.035}; b.bind(on_press=lambda x:webbrowser.open('https://play.google.com/store')); self.box.add_widget(b)
+
+class Settings(Base):
+    def __init__(self,**kw):
+        super().__init__(**kw); self.box.add_widget(self.txt('SETTINGS',28,size_hint=(1,None),height=dp(55),pos_hint={'center_x':.5,'top':.93}))
+        self.mb=btn('MUSIC: ON',250,58,18); self.mb.pos_hint={'center_x':.5,'center_y':.70}; self.mb.bind(on_press=self.toggle); self.box.add_widget(self.mb)
+        self.v=self.txt('VOLUME: 3',20,size_hint=(1,None),height=dp(45),pos_hint={'center_x':.5,'center_y':.58}); self.box.add_widget(self.v)
+        b=btn('-',70,55,28); b.pos_hint={'center_x':.38,'center_y':.48}; b.bind(on_press=lambda x:self.vol(-1)); self.box.add_widget(b)
+        b=btn('+',70,55,28); b.pos_hint={'center_x':.62,'center_y':.48}; b.bind(on_press=lambda x:self.vol(1)); self.box.add_widget(b)
+        b=btn('BACK',180,52,17); b.pos_hint={'center_x':.5,'y':.08}; b.bind(on_press=lambda x:setattr(App.get_running_app().sm,'current','home')); self.box.add_widget(b)
+    def on_pre_enter(self):
+        a=App.get_running_app(); self.music=a.music_on; self.volume=a.volume; self.refresh()
+    def refresh(self):
+        self.mb.text='MUSIC: ON' if self.music else 'MUSIC: OFF'; self.v.text=f'VOLUME: {self.volume}'
+    def toggle(self,*a):
+        self.music=not self.music; App.get_running_app().set_music(self.music); self.refresh()
+    def vol(self,d):
+        self.volume=max(0,min(5,self.volume)); self.volume=max(0,min(5,self.volume+d)); App.get_running_app().volume=self.volume; App.get_running_app().apply_volume(); self.refresh()
+
+class Levels(Base):
+    def __init__(self,**kw):
+        super().__init__(**kw); self.box.add_widget(self.txt('SELECT LEVEL',28,size_hint=(1,None),height=dp(55),pos_hint={'center_x':.5,'top':.94}))
+        g=GridLayout(cols=2,spacing=dp(14),padding=dp(20),size_hint=(.9,.42),pos_hint={'center_x':.5,'center_y':.53})
+        for i,n in enumerate(LEVELS):
+            b=btn(n,160,70,17); b.bind(on_press=lambda x,i=i:self.open(i)); g.add_widget(b)
+        self.box.add_widget(g); b=btn('HOME',170,50,17); b.pos_hint={'center_x':.5,'y':.06}; b.bind(on_press=lambda x:setattr(App.get_running_app().sm,'current','home')); self.box.add_widget(b)
+    def open(self,i): App.get_running_app().level=i; App.get_running_app().sm.current='stages'
+
+class Stages(Base):
+    def on_pre_enter(self):
+        self.box.clear_widgets(); a=App.get_running_app(); self.box.add_widget(self.txt(LEVELS[a.level],27,size_hint=(1,None),height=dp(55),pos_hint={'center_x':.5,'top':.95}))
+        g=GridLayout(cols=5,rows=10,spacing=dp(6),padding=dp(12),size_hint=(.95,.72),pos_hint={'center_x':.5,'center_y':.50})
+        for n in range(1,51):
+            unlocked=n<=a.progress[a.level]; b=btn(str(n),55,44,14) if unlocked else btn('LOCK',55,44,9,GRAY)
+            if unlocked: b.bind(on_press=lambda x,n=n:self.play(n))
+            g.add_widget(b)
+        self.box.add_widget(g); b=btn('BACK',160,48,16); b.pos_hint={'center_x':.5,'y':.02}; b.bind(on_press=lambda x:setattr(a.sm,'current','levels')); self.box.add_widget(b)
+    def play(self,n): a=App.get_running_app(); a.stage=n; a.sm.current='game'
+
+class Game(Base):
+    def on_pre_enter(self):
+        self.box.clear_widgets(); a=App.get_running_app(); q,ans=DATA[a.level][a.stage-1]; a.answer=ans; self.typed=''; self.buttons=[]
+        b=btn('MENU',80,48,13); b.pos_hint={'right':.95,'top':.965}; b.bind(on_press=lambda x:setattr(a.sm,'current','menu')); self.box.add_widget(b)
+        b=btn('RESTART',90,48,11); b.pos_hint={'x':.04,'top':.965}; b.bind(on_press=lambda x:self.reset()); self.box.add_widget(b)
+        self.box.add_widget(self.txt(f'STAGE {a.stage}',19,size_hint=(1,None),height=dp(45),pos_hint={'center_x':.5,'top':.90}))
+        ql=self.txt(q,20,size_hint=(.88,None),height=dp(160),pos_hint={'center_x':.5,'center_y':.70}); ql.halign='center'; ql.valign='middle'; ql.bind(size=lambda x,v:setattr(x,'text_size',v)); self.box.add_widget(ql)
+        self.al=self.txt('—',29,size_hint=(.9,None),height=dp(55),pos_hint={'center_x':.5,'center_y':.51}); self.box.add_widget(self.al)
+        # Answer letters + a few distractors. Every answer letter remains available.
+        letters=list(ans)+random.sample('ABCDEFGHIJKLMNOPQRSTUVWXYZ',max(0,min(4,10-len(ans))))
+        random.shuffle(letters)
+        g=GridLayout(cols=5,spacing=dp(7),padding=dp(12),size_hint=(.92,.30),pos_hint={'center_x':.5,'y':.08})
+        for ch in letters:
+            b=btn(ch,58,50,18); b.bind(on_press=lambda x,ch=ch,button=b:self.add(ch,button)); self.buttons.append(b); g.add_widget(b)
+        self.box.add_widget(g)
+    def add(self,ch,button):
+        a=App.get_running_app()
+        if len(self.typed)>=len(a.answer): return
+        self.typed+=ch; button.disabled=True; button.opacity=.35
+        self.al.text=self.typed
+        if self.typed==a.answer:
+            if a.stage==a.progress[a.level] and a.stage<50: a.progress[a.level]+=1; a.save()
+            a.sm.current='win'
+        elif not a.answer.startswith(self.typed):
+            self.al.text='TRY AGAIN'; self.typed=''
+            for b in self.buttons: b.disabled=False; b.opacity=1
+    def reset(self):
+        self.typed=''; self.al.text='—'
+        for b in getattr(self,'buttons',[]): b.disabled=False; b.opacity=1
+
+class Menu(Base):
+    def __init__(self,**kw):
+        super().__init__(**kw); self.box.add_widget(self.txt('MENU',29,size_hint=(1,None),height=dp(55),pos_hint={'center_x':.5,'top':.92}))
+        for i,t in enumerate(['CONTINUE','RESTART','RATE ON GOOGLE PLAY','EXIT']):
+            b=btn(t,240 if i==2 else 220,55,14 if i==2 else 17); b.pos_hint={'center_x':.5,'center_y':.70-i*.14}; b.bind(on_press=lambda x,t=t:self.action(t)); self.box.add_widget(b)
+    def action(self,t):
+        a=App.get_running_app()
+        if t in ('CONTINUE','RESTART'): a.sm.current='game'
+        elif t=='EXIT': a.sm.current='home'
+        else: webbrowser.open('https://play.google.com/store')
+
+class Win(Base):
+    def __init__(self,**kw):
+        super().__init__(**kw); self.box.add_widget(self.txt('LEVEL COMPLETE!',27,size_hint=(1,None),height=dp(60),pos_hint={'center_x':.5,'top':.86})); self.box.add_widget(self.txt('GOOD JOB!',22,size_hint=(1,None),height=dp(50),pos_hint={'center_x':.5,'center_y':.70}))
+        for i,t in enumerate(['NEXT STAGE','RESTART','RATE ON GOOGLE PLAY','EXIT']):
+            b=btn(t,240 if i==2 else 220,55,15 if i==2 else 17,GRAY if t=='EXIT' else (0.015,0.015,0.025,.92)); b.pos_hint={'center_x':.5,'center_y':.51-i*.13 if i<3 else .08}; b.bind(on_press=lambda x,t=t:self.action(t)); self.box.add_widget(b)
+    def action(self,t):
+        a=App.get_running_app()
+        if t=='NEXT STAGE':
+            if a.stage<50: a.stage+=1; a.sm.current='game'
+            else: a.sm.current='stages'
+        elif t=='RESTART': a.sm.current='game'
+        elif t=='EXIT': a.sm.current='home'
+        else: webbrowser.open('https://play.google.com/store')
+
+class PuzzleApp(App):
+    def build(self):
+        self.level=0; self.stage=1; self.answer=''; self.progress=[5,5,5,5]
+        self.music_on=True; self.volume=3; self.sound=None
+        self.store=JsonStore('puzzle_progress.json')
+        if self.store.exists('progress'): self.progress=self.store.get('progress')['data']
+        if self.store.exists('settings'):
+            st=self.store.get('settings'); self.music_on=st.get('music',True); self.volume=st.get('volume',3)
+        try:
+            self.sound=SoundLoader.load(make_music_file())
+            if self.sound:
+                self.sound.loop=True; self.apply_volume();
+                if self.music_on: self.sound.play()
+        except Exception:
+            self.sound=None
+        self.sm=ScreenManager()
+        for C,n in [(Home,'home'),(Settings,'settings'),(Levels,'levels'),(Stages,'stages'),(Game,'game'),(Menu,'menu'),(Win,'win')]: self.sm.add_widget(C(name=n))
+        return self.sm
+    def apply_volume(self):
+        if self.sound: self.sound.volume=self.volume/5.0
+    def set_music(self,on):
+        self.music_on=on
+        if self.sound:
+            if on: self.sound.play()
+            else: self.sound.stop()
+        self.save_settings()
+    def save_settings(self): self.store.put('settings',music=self.music_on,volume=self.volume)
+    def save(self): self.store.put('progress',data=self.progress); self.save_settings()
+
+if __name__=='__main__': PuzzleApp().run()
